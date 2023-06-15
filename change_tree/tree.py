@@ -130,7 +130,7 @@ def from_commit_methods(pre_commit_method: CommitMethodDefinition,
                         post_commit_method: CommitMethodDefinition, files_root: Path | str) -> ChangeTree:
     files_root = Path(files_root)
 
-    pre_tree = get_sitter_AST_method(files_root, pre_commit_method)
-    post_tree = get_sitter_AST_method(files_root, post_commit_method)
+    pre_tree = get_sitter_AST_method(files_root / 'pre', pre_commit_method)
+    post_tree = get_sitter_AST_method(files_root / 'post', post_commit_method)
 
     return ChangeTree(pre_tree, post_tree)

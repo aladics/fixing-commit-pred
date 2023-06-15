@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 tree-sitter = "*"
+pydantic = "*"
+pyyaml = "*"
 
 [dev-packages]
 
