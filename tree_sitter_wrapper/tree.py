@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tree_sitter_wrapper.node import Node
 from common.commit_method import CommitMethodDefinition
+from common.root_path import RootPath
 
 Language.build_library(
     # Store the library in the `build` directory
@@ -59,6 +60,21 @@ class TreeSitterTree:
         """
         return self.root
 
+    def get_root_path(self, node: Node) -> RootPath:
+        """
+        Get the root path to the parameter node.
+        """
+        root_path = []
+
+        while True:
+            root_path = [node] + root_path
+            if node == self.root:
+                break
+
+            node = node.parent
+
+        return RootPath(root_path)
+
     def get_random_leaf(self) -> Node:
         """
         Get a random leaf in the tree by uniform randomly selecting a children at each node until we arrive at a leaf
@@ -69,12 +85,12 @@ class TreeSitterTree:
         node = self.root
 
         while not node.is_leaf():
-            selected_child_idx = random.randint(0, len(node.children))
+            selected_child_idx = random.randint(0, len(node.children)-1)
             node = node.children[selected_child_idx]
 
         return node
 
-    def get_random_root_paths(self, n_paths: int, max_tries=50) -> set[list[Node]]:
+    def get_random_root_paths(self, n_paths: int, max_tries=500) -> list[RootPath]:
         """
         Get randomly generated root paths.
 
@@ -85,21 +101,21 @@ class TreeSitterTree:
         Returns:
             Set of root paths (no duplicates)
         """
-        root_paths = set()
+        root_paths = []
 
         n_tries = 0
         while n_tries < max_tries and len(root_paths) < n_paths:
             node = self.get_random_leaf()
-            root_path = get_root_path(node)
+            root_path = self.get_root_path(node)
             if root_path in root_paths:
                 n_tries += 1
             else:
-                root_paths.add(root_path)
+                root_paths.append(root_path)
                 n_tries = 0
 
         return root_paths
 
-    def get_root_paths(self, n_max_root_paths: int) -> list[list[Node]]:
+    def get_root_paths(self, n_max_root_paths: int) -> list[RootPath]:
         """Get a number of root paths for the leaf nodes in the tree while traversing the tree in a BFS manner
 
         Args:
@@ -112,7 +128,7 @@ class TreeSitterTree:
                 break
 
             if node.is_leaf():
-                root_paths.append(get_root_path(node))
+                root_paths.append(self.get_root_path(node))
 
         return root_paths
 
@@ -147,16 +163,3 @@ def get_sitter_AST_file(filepath: Path | str) -> TreeSitterTree:
 def get_sitter_AST_method(files_root: Path | str, commit_method: CommitMethodDefinition) -> TreeSitterTree:
     return get_sitter_AST_file(files_root / commit_method.filepath).\
            get_method_by_pos(commit_method.line, commit_method.col)
-
-
-def get_root_path(node: Node) -> list[Node]:
-    """
-    Get the root path to the parameter node.
-    """
-    root_path = [node]
-
-    while node := node.parent:  # type: ignore
-        root_path = [node] + root_path
-
-    return root_path
-

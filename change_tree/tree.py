@@ -6,7 +6,6 @@ from tree_sitter_wrapper.tree import TreeSitterTree, get_sitter_AST_method
 
 from common.root_path import RootPath
 from common.commit_method import CommitMethodDefinition
-from common import config
 from change_tree import node
 from tree_sitter_wrapper.node import Node as TreeSitterNode
 
@@ -19,12 +18,8 @@ class ChangeTree:
     root: node.Node | None = field(init=False)
 
     def __post_init__(self):
-        self.before_paths = [
-            RootPath(path) for path in self.before_tree.get_root_paths(self.max_root_paths)
-        ]
-        self.after_paths = [
-            RootPath(path) for path in self.after_tree.get_root_paths(self.max_root_paths)
-        ]
+        self.before_paths = self.before_tree.get_random_root_paths(self.max_root_paths)
+        self.after_paths = self.after_tree.get_random_root_paths(self.max_root_paths)
 
         self.root = None
 
