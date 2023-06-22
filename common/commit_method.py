@@ -7,18 +7,20 @@ class CommitMethodDefinition:
 
     """
 
-    def __init__(self, repo: str, sha: str, filepath: str, pos: str):
+    def __init__(self, repo: str, sha: str, filepath: str, url: str, identifier: str, pos: str):
         self.repo = repo
         self.sha = sha
         self.filepath = filepath
+        self.url = url
+        self.identifier = identifier
 
         positions = pos.split(":")
         self.line = int(positions[0])
         self.col = int(positions[1])
 
 
-def csv_line_parser_base(line: str, repo_idx: int, sha_idx: int, filepath_idx: int, pos_idx: int) -> \
-        CommitMethodDefinition:
+def csv_line_parser_base(line: str, repo_idx: int, sha_idx: int, filepath_idx: int, url_idx: int, identifier_idx: int,
+                         pos_idx: int) -> CommitMethodDefinition:
     """
 
     Args:
@@ -26,6 +28,7 @@ def csv_line_parser_base(line: str, repo_idx: int, sha_idx: int, filepath_idx: i
         repo_idx: The column index of the repository
         sha_idx: The column index of the commit hash
         filepath_idx: The column index of the filepath
+        url_idx: The column index of the URL
         pos_idx: The column index of the position
 
     Returns: Corresponding CommitMethodDefinition object
@@ -33,4 +36,4 @@ def csv_line_parser_base(line: str, repo_idx: int, sha_idx: int, filepath_idx: i
     """
     fields = line.split(",")
     return CommitMethodDefinition(repo=fields[repo_idx], sha=fields[sha_idx], filepath=fields[filepath_idx],
-                                  pos=fields[pos_idx])
+                                  url=fields[url_idx], identifier=fields[identifier_idx], pos=fields[pos_idx])

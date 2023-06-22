@@ -7,6 +7,8 @@ name = "pypi"
 tree-sitter = "*"
 pydantic = "*"
 pyyaml = "*"
+requests = "*"
+tqdm = "*"
 
 [dev-packages]
 

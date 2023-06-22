@@ -3,15 +3,16 @@ from __future__ import annotations
 from base_classes.node import BaseNode
 from tree_sitter_wrapper.node import Node as TreeSitterNode
 
+
 class Node(BaseNode):
     def __init__(
-        self,
-        id: str,
-        child_rank: int,
-        type: str,
-        value: str | None = None,
-        parent: Node | None = None,
-        children: list[Node] | None = None,
+            self,
+            id: str,
+            child_rank: int,
+            type: str,
+            value: str | None = None,
+            parent: Node | None = None,
+            children: list[Node] | None = None,
     ):
         super().__init__(type)
         self.id_ = id

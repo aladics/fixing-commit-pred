@@ -1,0 +1,11 @@
+# Path to the source files root
+summer23_dataset_files_root: <PATH>
+
+# Path to the csv file that contains the changed methods
+summer23_dataset_path: <PATH>
+
+# Path to the change trees save root
+summer23_chtree_root: <PATH>
+
+# Path to the log file base name, a rotating file handler is used with 2 backups
+log_file: <PATH>

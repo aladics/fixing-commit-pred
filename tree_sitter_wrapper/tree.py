@@ -6,9 +6,10 @@ from typing import Iterator
 import random
 from pathlib import Path
 
-from tree_sitter_wrapper.node import Node
+from tree_sitter_wrapper.node import Node, update_visited_nodes
 from common.commit_method import CommitMethodDefinition
 from common.root_path import RootPath
+from tree_sitter import Node as RawNode
 
 Language.build_library(
     # Store the library in the `build` directory
@@ -75,43 +76,47 @@ class TreeSitterTree:
 
         return RootPath(root_path)
 
-    def get_random_leaf(self) -> Node:
+    def get_random_leaf(self, visited_nodes: list[RawNode]) -> Node | None:
         """
-        Get a random leaf in the tree by uniform randomly selecting a children at each node until we arrive at a leaf
+        Get a random leaf in the tree by uniform randomly selecting a children at each node until a leaf is reached
+        while not traversing any node that has been traversed before in visited_nodes
+
+        Args:
+            visited_nodes: List of visited nodes
 
         Returns:
-            A leaf (terminal) node in the tree
+            A leaf (terminal) node in the tree, or None if every node is already visited
         """
         node = self.root
 
         while not node.is_leaf():
-            selected_child_idx = random.randint(0, len(node.children)-1)
-            node = node.children[selected_child_idx]
+            unvisited_children = node.get_unvisited_children(visited_nodes)
+            if len(unvisited_children) == 0:
+                return None
+            node = random.choice(unvisited_children)[1]
 
         return node
 
-    def get_random_root_paths(self, n_paths: int, max_tries=500) -> list[RootPath]:
+    def get_random_root_paths(self, n_paths: int) -> list[RootPath]:
         """
         Get randomly generated root paths.
 
         Args:
             n_paths: The number of root paths to randomly get
-            max_tries: The max tries to get a new root path that is not already included
 
         Returns:
             Set of root paths (no duplicates)
         """
         root_paths = []
+        visited_nodes = []
 
-        n_tries = 0
-        while n_tries < max_tries and len(root_paths) < n_paths:
-            node = self.get_random_leaf()
-            root_path = self.get_root_path(node)
-            if root_path in root_paths:
-                n_tries += 1
-            else:
-                root_paths.append(root_path)
-                n_tries = 0
+        while len(root_paths) < n_paths:
+            node = self.get_random_leaf(visited_nodes)
+            if not node:
+                break
+
+            root_paths.append(self.get_root_path(node))
+            update_visited_nodes(node, visited_nodes)
 
         return root_paths
 
@@ -151,6 +156,15 @@ class TreeSitterTree:
 
 
 def get_sitter_AST_file(filepath: Path | str) -> TreeSitterTree:
+    """
+    Extract the AST for a file
+
+    Args:
+        filepath: The file to extract AST for
+
+    Returns:
+
+    """
     filepath = Path(filepath)
 
     with filepath.open("rb") as fp:
@@ -160,6 +174,15 @@ def get_sitter_AST_file(filepath: Path | str) -> TreeSitterTree:
     return TreeSitterTree(Node(ast.root_node))
 
 
-def get_sitter_AST_method(files_root: Path | str, commit_method: CommitMethodDefinition) -> TreeSitterTree:
-    return get_sitter_AST_file(files_root / commit_method.filepath).\
-           get_method_by_pos(commit_method.line, commit_method.col)
+def get_sitter_AST_method(filepath: Path | str, commit_method: CommitMethodDefinition) -> TreeSitterTree:
+    """
+    Parses the TreeSitter AST for a method
+
+    Args:
+        filepath: Path to the file containing the method
+        commit_method: The method to extract AST for
+
+    Returns: TreeSitterTree object
+
+    """
+    return get_sitter_AST_file(filepath).get_method_by_pos(commit_method.line, commit_method.col)

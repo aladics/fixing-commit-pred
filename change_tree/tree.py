@@ -1,25 +1,15 @@
-from dataclasses import dataclass, field
 from typing import Iterator
-from pathlib import Path
 
-from tree_sitter_wrapper.tree import TreeSitterTree, get_sitter_AST_method
+from tree_sitter_wrapper.tree import TreeSitterTree
 
 from common.root_path import RootPath
-from common.commit_method import CommitMethodDefinition
 from change_tree import node
-from tree_sitter_wrapper.node import Node as TreeSitterNode
 
 
-@dataclass
 class ChangeTree:
-    before_tree: TreeSitterTree
-    after_tree: TreeSitterTree
-    max_root_paths: int = 200
-    root: node.Node | None = field(init=False)
-
-    def __post_init__(self):
-        self.before_paths = self.before_tree.get_random_root_paths(self.max_root_paths)
-        self.after_paths = self.after_tree.get_random_root_paths(self.max_root_paths)
+    def __init__(self, before_tree: TreeSitterTree, after_tree: TreeSitterTree, max_root_paths = 400):
+        self.before_paths = before_tree.get_random_root_paths(max_root_paths)
+        self.after_paths = after_tree.get_random_root_paths(max_root_paths)
 
         self.root = None
 
@@ -66,7 +56,8 @@ class ChangeTree:
         changed_paths = set()
         changed_paths.update(base_set)
         changed_paths.difference_update(other_set)
-        changed_paths = sorted(changed_paths, key=lambda el: base_set.index(el))
+        # changed_paths = sorted(changed_paths, key=lambda el: base_set.index(el))
+        changed_paths = sorted(changed_paths)
 
         for changed_path in changed_paths:
             self.add_root_path(changed_path.path)
@@ -83,17 +74,15 @@ class ChangeTree:
         """
         self.create_path_diffs(self.after_paths, self.before_paths)
 
-    def add_root_path(self, root_path: list[TreeSitterNode]) -> None:
+    def add_root_path(self, root_path: list[node.Node]) -> None:
         """
         Add a root path to construct the change tree.
 
         Args:
-            root_path: List of TreeSitter nodes to be added to the change tree
+            root_path: List of ChangeTree nodes to be added to the change tree
         """
 
-        root_in_path: node.Node = node.from_sitter_node(
-            root_path[0]
-        )
+        root_in_path = root_path[0]
 
         if self.root is None:
             self.root = root_in_path
@@ -114,18 +103,8 @@ class ChangeTree:
             if next_node:
                 parent = next_node
             else:
-                new_node = node.from_sitter_node(node_in_path)
+                new_node = node_in_path
 
                 new_node.parent = parent
                 parent.children.append(new_node)
                 parent = new_node
-
-
-def from_commit_methods(pre_commit_method: CommitMethodDefinition,
-                        post_commit_method: CommitMethodDefinition, files_root: Path | str) -> ChangeTree:
-    files_root = Path(files_root)
-
-    pre_tree = get_sitter_AST_method(files_root / 'pre', pre_commit_method)
-    post_tree = get_sitter_AST_method(files_root / 'post', post_commit_method)
-
-    return ChangeTree(pre_tree, post_tree)

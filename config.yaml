@@ -1,5 +1,0 @@
-# Path to the source files root, must have 'pre' and 'pos' subdirectories
-summer23_dataset_files_root: F:/work/kutatas/datasets/mock/summer23
-
-# Path to the csv file that contains the changed methods
-summer23_dataset_path: F:/work/kutatas/datasets/mock/summer23/top1_changed_methods.csv

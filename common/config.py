@@ -9,6 +9,8 @@ CONFIG_PATH = "config.yaml"
 class Config(BaseModel):
     summer23_dataset_files_root: str
     summer23_dataset_path: str
+    summer23_chtree_root: str
+    log_file: str
 
 
 def get_config():

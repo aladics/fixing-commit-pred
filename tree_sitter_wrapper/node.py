@@ -53,3 +53,34 @@ class Node(BaseNode):
 
     def walk(self):
         return self.raw_node.walk()
+
+    def get_unvisited_children(self, visited_nodes: list[RawNode]) -> list[tuple[int, Node]]:
+        unvisited_children = []
+        for idx, child in enumerate(self.children):
+            if child.raw_node not in visited_nodes:
+                unvisited_children.append((idx, child))
+
+        return unvisited_children
+
+
+def update_visited_nodes(node: Node, visited_nodes: list[RawNode]) -> None:
+    """
+    Updates a list of visited nodes by considering a node in params already visited. Each element in the list is a node
+    who's all children is already visited
+
+    Args:
+        node: The node that is being checked if it is already visited
+        visited_nodes: List of visited nodes in which all elements have all their children and themselves already visited
+
+    Returns: None
+
+    """
+    if not node:
+        return
+
+    for child in node.children:
+        if child.raw_node not in visited_nodes:
+            return
+
+    visited_nodes.append(node.raw_node)
+    update_visited_nodes(node.parent, visited_nodes)
